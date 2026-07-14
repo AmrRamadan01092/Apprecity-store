@@ -1,0 +1,130 @@
+from django.db import models
+from django.urls import reverse
+from django.contrib.auth.models import User
+
+class Governorate(models.Model):
+    name = models.CharField(max_length=100, unique=True, verbose_name="اسم المحافظة")
+    shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="تكلفة الشحن (جنيه)")
+
+    class Meta:
+        verbose_name = "محافظة"
+        verbose_name_plural = "المحافظات وتكاليف الشحن"
+
+    def __str__(self):
+        return f"{self.name} ({self.shipping_cost} ج.م)"
+
+
+class StoreSetting(models.Model):
+    free_shipping_threshold = models.DecimalField(max_digits=10, decimal_places=2, default=500.00, verbose_name="الحد الأدنى للشحن المجاني (جنيه)")
+
+    class Meta:
+        verbose_name = "إعدادات المتجر"
+        verbose_name_plural = "إعدادات المتجر"
+
+    def __str__(self):
+        return "إعدادات المتجر الأساسية"
+
+    @classmethod
+    def get_settings(cls):
+        obj, _ = cls.objects.get_or_create(id=1)
+        return obj
+
+
+class Coupon(models.Model):
+    code = models.CharField(max_length=50, unique=True, verbose_name="كود الخصم")
+    discount = models.PositiveIntegerField(verbose_name="نسبة الخصم %")
+    active = models.BooleanField(default=True, verbose_name="نشط / متوفر للاستخدام")
+
+    class Meta:
+        verbose_name = "كوبون خصم"
+        verbose_name_plural = "كوبونات الخصم"
+
+    def __str__(self):
+        return f"{self.code} (خصم {self.discount}%)"
+
+class Category(models.Model):
+    name = models.CharField(max_length=150, verbose_name="اسم القسم")
+    slug = models.SlugField(max_length=150, unique=True, verbose_name="الرابط الفريد (Slug)")
+    description = models.TextField(blank=True, verbose_name="وصف القسم")
+    image = models.ImageField(upload_to='categories/', blank=True, null=True, verbose_name="صورة القسم")
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = "قسم"
+        verbose_name_plural = "أقسام المنتجات"
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('store:product_list_by_category', args=[self.slug])
+
+
+class Product(models.Model):
+    category = models.ForeignKey(Category, related_name='products', on_delete=models.CASCADE, verbose_name="القسم")
+    name = models.CharField(max_length=200, verbose_name="اسم المنتج")
+    slug = models.SlugField(max_length=200, unique=True, verbose_name="الرابط الفريد (Slug)")
+    description = models.TextField(verbose_name="وصف المنتج")
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="السعر (جنيه مصري)")
+    discount_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="السعر بعد الخصم (اختياري)")
+    image = models.ImageField(upload_to='products/', blank=True, null=True, verbose_name="صورة المنتج")
+    stock = models.IntegerField(default=10, verbose_name="المخزون المتوفر")
+    is_active = models.BooleanField(default=True, verbose_name="نشط/متوفر للبيع")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
+
+    class Meta:
+        ordering = ('-created_at',)
+        verbose_name = "منتج"
+        verbose_name_plural = "المنتجات"
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('store:product_detail', args=[self.id, self.slug])
+
+
+class Order(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'قيد الانتظار / معالجة الدفع'),
+        ('processing', 'قيد التحضير'),
+        ('shipped', 'تم الشحن'),
+        ('delivered', 'تم التوصيل / مكتمل'),
+        ('cancelled', 'ملغي'),
+    )
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders', verbose_name="المستخدم صاحب الطلب")
+    first_name = models.CharField(max_length=100, verbose_name="الاسم الأول")
+    last_name = models.CharField(max_length=100, verbose_name="اسم العائلة")
+    email = models.EmailField(verbose_name="البريد الإلكتروني")
+    phone = models.CharField(max_length=20, verbose_name="رقم الهاتف")
+    governorate = models.ForeignKey(Governorate, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="المحافظة")
+    city = models.CharField(max_length=100, verbose_name="المدينة / المنطقة")
+    address = models.CharField(max_length=250, verbose_name="العنوان بالتفصيل")
+    shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="تكلفة شحن الطلب")
+    coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="الكوبون المستخدم")
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="مبلغ الخصم المطبق")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الطلب")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="حالة الطلب")
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="إجمالي السعر")
+
+    class Meta:
+        ordering = ('-created_at',)
+        verbose_name = "طلب"
+        verbose_name_plural = "الطلبات"
+
+    def __str__(self):
+        return f"الطلب رقم {self.id} - {self.first_name} {self.last_name}"
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE, verbose_name="الطلب")
+    product = models.ForeignKey(Product, related_name='order_items', on_delete=models.CASCADE, verbose_name="المنتج")
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="السعر عند الشراء")
+    quantity = models.PositiveIntegerField(default=1, verbose_name="الكمية")
+
+    class Meta:
+        verbose_name = "عنصر طلب"
+        verbose_name_plural = "عناصر الطلبات"
+
+    def __str__(self):
+        return f"المنتج: {self.product.name} (الكمية: {self.quantity})"

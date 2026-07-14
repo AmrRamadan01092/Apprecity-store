@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Apprecity | {{ title|default:"إضافة منتج جديد" }}{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top: 5rem; max-width: 700px; margin: 0 auto;">
+    <div style="margin-bottom: 2.5rem; text-align: center;">
+        <a href="{% url 'store:dashboard' %}" class="btn-text-add" style="display: inline-block; margin-bottom: 1.5rem; text-decoration: none; color: var(--primary-light);">
+            <i class="fa-solid fa-arrow-right" style="margin-left: 6px;"></i> العودة للوحة التحكم
+        </a>
+        <h2 style="font-family: var(--font-heading); font-size: 2.2rem; color: var(--primary); text-shadow: 0 0 12px rgba(212,175,55,0.15);">
+            {{ title|default:"إضافة منتج جديد للمتجر" }}
+        </h2>
+        <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 0.95rem;">
+            {% if is_edit %}يرجى تحديث البيانات أدناه وحفظ التعديلات.{% else %}يرجى تعبئة كافة التفاصيل المطلوبة لنشرها على المتجر.{% endif %}
+        </p>
+    </div>
+
+    <!-- Glassmorphic Premium Form Container -->
+    <div class="cart-summary" style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 3rem 2.5rem; background: rgba(18, 18, 24, 0.65); backdrop-filter: blur(10px); box-shadow: 0 15px 35px rgba(0,0,0,0.4);">
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div class="form-group" style="margin-bottom: 1.75rem;">
+                <label for="{{ field.id_for_label }}" style="font-weight: 500; font-size: 0.95rem; color: var(--text-main); display: block; margin-bottom: 0.5rem;">
+                    {{ field.label }} {% if field.field.required %}<span style="color: var(--primary);">*</span>{% endif %}
+                </label>
+                
+                {{ field }}
+                
+                {% if field.help_text %}
+                    <small style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 0.35rem; line-height: 1.4;">{{ field.help_text|safe }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                    <small style="color: #ef4444; font-size: 0.8rem; display: block; margin-top: 0.35rem; font-weight: 500;">
+                        <i class="fa-solid fa-triangle-exclamation" style="margin-left: 4px;"></i> {{ error }}
+                    </small>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            <!-- Form Submit Buttons -->
+            <div style="display: flex; gap: 1rem; margin-top: 3rem;">
+                <button type="submit" class="btn-primary btn-checkout" style="flex-grow: 2; margin: 0; padding: 1rem; font-size: 1rem;">
+                    {% if is_edit %}
+                        حفظ التعديلات وتحديث البيانات <i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i>
+                    {% else %}
+                        نشر وتفعيل المادة الجديدة <i class="fa-solid fa-cloud-arrow-up" style="margin-right: 8px;"></i>
+                    {% endif %}
+                </button>
+                
+                <a href="{% url 'store:dashboard' %}" class="btn-secondary" style="flex-grow: 1; text-align: center; display: flex; align-items: center; justify-content: center; padding: 1rem; margin: 0;">
+                    إلغاء
+                </a>
+            </div>
+        </form>
+    </div>
+</section>
+
+<style>
+    /* Premium Styling Form Elements */
+    .form-input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.02) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: var(--radius-sm);
+        padding: 0.9rem 1rem;
+        color: var(--text-main) !important;
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        outline: none;
+        margin-top: 0.25rem;
+        display: block;
+        transition: all 0.3s ease;
+    }
+    .form-input:focus {
+        border-color: var(--primary) !important;
+        background: rgba(255, 255, 255, 0.04) !important;
+        box-shadow: 0 0 10px rgba(212,175,55,0.15);
+    }
+    .form-checkbox {
+        width: 22px;
+        height: 22px;
+        accent-color: var(--primary);
+        cursor: pointer;
+        display: block;
+        margin-top: 0.5rem;
+        transition: transform 0.2s ease;
+    }
+    .form-checkbox:hover {
+        transform: scale(1.05);
+    }
+    select.form-input {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml;utf8,<svg fill='%23d4af37' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+        background-repeat: no-repeat;
+        background-position: left 12px center;
+    }
+</style>
+{% endblock %}

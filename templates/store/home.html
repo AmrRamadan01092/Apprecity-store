@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Apprecity | الرئيسية{% endblock %}
+
+{% block content %}
+<!-- Luxury Hero Section -->
+<section class="hero">
+    <div class="hero-container">
+        <div class="hero-content">
+            <span class="hero-tagline">فخامة تليق بك</span>
+            <h1 class="hero-title">أناقة تتحدث <span>عن حضورك.</span></h1>
+            <p class="hero-desc">اكتشف تشكيلتنا الحصرية من الإكسسوارات والمجوهرات المصممة خصيصاً لتمنحك بريقاً فريداً وإطلالة تأسر القلوب في كل مناسبة.</p>
+            <a href="{% url 'store:shop' %}" class="btn-primary">اكتشف المجموعات <i class="fa-solid fa-arrow-left-long" style="margin-right: 8px;"></i></a>
+        </div>
+        <div class="hero-image-wrapper">
+            <div class="hero-image-inner">
+                {% if latest_products.0 and latest_products.0.image %}
+                    <img src="{{ latest_products.0.image.url }}" alt="Featured Accessory">
+                {% else %}
+                    <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=600" alt="Featured Accessory">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Luxury Categories Grid -->
+<section class="section">
+    <div class="section-header">
+        <span class="section-subtitle">تصنيفاتنا الحصرية</span>
+        <h2 class="section-title">تسوق حسب الفئة</h2>
+    </div>
+    
+    <div class="category-grid">
+        {% for cat in categories %}
+        <a href="{% url 'store:product_list_by_category' cat.slug %}" class="category-card">
+            {% if cat.image %}
+                <img src="{{ cat.image.url }}" alt="{{ cat.name }}" class="category-card-img">
+            {% else %}
+                <img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=600" alt="{{ cat.name }}" class="category-card-img">
+            {% endif %}
+            <div class="category-card-info">
+                <span>مجموعة</span>
+                <h3>{{ cat.name }}</h3>
+            </div>
+        </a>
+        {% empty %}
+        <!-- Default Demo Categories if Database is empty -->
+        <a href="{% url 'store:shop' %}" class="category-card">
+            <img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=600" alt="مجوهرات" class="category-card-img">
+            <div class="category-card-info">
+                <span>مجموعة</span>
+                <h3>مجوهرات راقية</h3>
+            </div>
+        </a>
+        <a href="{% url 'store:shop' %}" class="category-card">
+            <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=600" alt="ساعات" class="category-card-img">
+            <div class="category-card-info">
+                <span>مجموعة</span>
+                <h3>ساعات فاخرة</h3>
+            </div>
+        </a>
+        <a href="{% url 'store:shop' %}" class="category-card">
+            <img src="https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&q=80&w=600" alt="نظارات" class="category-card-img">
+            <div class="category-card-info">
+                <span>مجموعة</span>
+                <h3>نظارات شمسية</h3>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Latest Additions Section -->
+<section class="section">
+    <div class="section-header">
+        <span class="section-subtitle">أحدث القطع المضافة</span>
+        <h2 class="section-title">مجموعتنا الجديدة</h2>
+    </div>
+
+    <div class="product-grid">
+        {% for product in latest_products %}
+        <div class="product-card">
+            <div class="product-image-container">
+                <a href="{{ product.get_absolute_url }}">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600" alt="{{ product.name }}">
+                    {% endif %}
+                </a>
+                {% if product.stock <= 3 and product.stock > 0 %}
+                    <span class="product-badge">قطع محدودة!</span>
+                {% elif product.stock == 0 %}
+                    <span class="product-badge" style="background-color: #ef4444; color: #fff;">نفذ المخزون</span>
+                {% endif %}
+                
+                {% if product.stock > 0 %}
+                <div class="product-actions">
+                    <button class="btn-icon ajax-add-to-cart" data-id="{{ product.id }}" title="أضف إلى السلة">
+                        <i class="fa-solid fa-cart-plus"></i>
+                    </button>
+                    <a href="{{ product.get_absolute_url }}" class="btn-icon" title="عرض التفاصيل">
+                        <i class="fa-solid fa-eye"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            <div class="product-details">
+                <span class="product-category">{{ product.category.name }}</span>
+                <a href="{{ product.get_absolute_url }}"><h3 class="product-title">{{ product.name }}</h3></a>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                    الكمية المتوفرة: {{ product.stock }} قطعة
+                </div>
+                <div class="product-price-row">
+                    {% if product.discount_price %}
+                        <span class="product-price">{{ product.discount_price }} جنيه <span style="text-decoration: line-through; color: var(--text-muted); font-size: 0.85rem; margin-right: 6px;">{{ product.price }} جنيه</span></span>
+                    {% else %}
+                        <span class="product-price">{{ product.price }} جنيه</span>
+                    {% endif %}
+                    {% if product.stock > 0 %}
+                    <button class="btn-text-add ajax-add-to-cart" data-id="{{ product.id }}">أضف للسلة +</button>
+                    {% else %}
+                    <span style="color: #ef4444; font-size: 0.85rem;">غير متوفر</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; color: var(--text-muted);">
+            <i class="fa-solid fa-gem" style="font-size: 3rem; color: var(--primary); opacity: 0.3; margin-bottom: 1rem; display: block;"></i>
+            <h3>سيتم إضافة المنتجات الفاخرة قريباً جداً. تابعنا!</h3>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

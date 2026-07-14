@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Apprecity | {{ product.name }}{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top: 4rem;">
+    <!-- Detail layout grid -->
+    <div class="detail-layout">
+        <!-- Left Column: Product Image -->
+        <div class="detail-img-box">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            {% else %}
+                <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600" alt="{{ product.name }}">
+            {% endif %}
+        </div>
+
+        <!-- Right Column: Product Info -->
+        <div class="detail-info">
+            <span class="detail-category">{{ product.category.name }}</span>
+            <h1 class="detail-title">{{ product.name }}</h1>
+            {% if product.discount_price %}
+                <div class="detail-price">{{ product.discount_price }} جنيه <span style="text-decoration: line-through; color: var(--text-muted); font-size: 1.2rem; margin-right: 10px;">{{ product.price }} جنيه</span></div>
+            {% else %}
+                <div class="detail-price">{{ product.price }} جنيه</div>
+            {% endif %}
+            
+            <p class="detail-desc">{{ product.description }}</p>
+            
+            <div class="detail-meta">
+                <div class="detail-meta-item">
+                    <strong>حالة التوفر:</strong>
+                    {% if product.stock > 0 %}
+                        <span class="badge-stock badge-instock">متوفر في المخزون ({{ product.stock }} قطع)</span>
+                    {% else %}
+                        <span class="badge-stock badge-outofstock">غير متوفر حالياً</span>
+                    {% endif %}
+                </div>
+                <div class="detail-meta-item">
+                    <strong>القسم:</strong>
+                    <span>{{ product.category.name }}</span>
+                </div>
+                <div class="detail-meta-item">
+                    <strong>تاريخ الإدراج:</strong>
+                    <span>{{ product.created_at|date:"d M Y" }}</span>
+                </div>
+            </div>
+
+            {% if product.stock > 0 %}
+            <div class="detail-action-row">
+                <!-- Quantity selector -->
+                <div class="quantity-selector">
+                    <button type="button" onclick="decrementQty()">-</button>
+                    <input type="number" id="quantity-input" value="1" min="1" max="{{ product.stock }}" readonly>
+                    <button type="button" onclick="incrementQty()">+</button>
+                </div>
+
+                <button class="btn-primary ajax-add-to-cart" data-id="{{ product.id }}" style="border-radius: 4px; padding: 0.85rem 3rem;">
+                    إضافة إلى السلة <i class="fa-solid fa-bag-shopping" style="margin-right: 8px;"></i>
+                </button>
+            </div>
+            {% else %}
+            <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); padding: 1rem; border-radius: var(--radius-sm); text-align: center; color: #ef4444; font-weight: 500;">
+                <i class="fa-solid fa-circle-info" style="margin-left: 8px;"></i> نأسف! هذا المنتج نفذ من المخزن مؤقتاً، يمكنك التحقق من القطع المشابهة أدناه.
+            </div>
+            {% endif %}
+            {% if user.is_staff %}
+            <div style="margin-top: 2rem; border-top: 1px dashed rgba(255, 255, 255, 0.1); padding-top: 1.5rem; display: flex; gap: 1rem;">
+                <a href="{% url 'store:edit_product' product.id %}" class="btn-primary" style="flex-grow: 1; text-align: center; margin: 0; padding: 0.75rem;">
+                    <i class="fa-solid fa-pen-to-square" style="margin-left: 6px;"></i> تعديل المنتج
+                </a>
+                <a href="{% url 'store:delete_product' product.id %}" class="btn-secondary" style="border-color: #ef4444; color: #ef4444; flex-grow: 1; text-align: center; margin: 0; padding: 0.75rem;" onclick="return confirm('هل أنت متأكد من حذف هذا المنتج نهائياً من المتجر؟');">
+                    <i class="fa-solid fa-trash-can" style="margin-left: 6px;"></i> حذف المنتج
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Related Products Section -->
+{% if related_products %}
+<section class="section" style="border-top: 1px solid var(--border-color); margin-top: 4rem;">
+    <div class="section-header">
+        <span class="section-subtitle">قد تعجبك أيضاً</span>
+        <h2 class="section-title">قطع إكسسوارات مشابهة</h2>
+    </div>
+
+    <div class="product-grid">
+        {% for prod in related_products %}
+        <div class="product-card">
+            <div class="product-image-container">
+                <a href="{{ prod.get_absolute_url }}">
+                    {% if prod.image %}
+                        <img src="{{ prod.image.url }}" alt="{{ prod.name }}">
+                    {% else %}
+                        <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600" alt="{{ prod.name }}">
+                    {% endif %}
+                </a>
+                {% if prod.stock <= 3 and prod.stock > 0 %}
+                    <span class="product-badge">قطع محدودة!</span>
+                {% elif prod.stock == 0 %}
+                    <span class="product-badge" style="background-color: #ef4444; color: #fff;">نفذ المخزون</span>
+                {% endif %}
+                
+                {% if prod.stock > 0 %}
+                <div class="product-actions">
+                    <button class="btn-icon ajax-add-to-cart" data-id="{{ prod.id }}" title="أضف إلى السلة">
+                        <i class="fa-solid fa-cart-plus"></i>
+                    </button>
+                    <a href="{{ prod.get_absolute_url }}" class="btn-icon" title="عرض التفاصيل">
+                        <i class="fa-solid fa-eye"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            <div class="product-details">
+                <span class="product-category">{{ prod.category.name }}</span>
+                <a href="{{ prod.get_absolute_url }}"><h3 class="product-title">{{ prod.name }}</h3></a>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                    الكمية المتوفرة: {{ prod.stock }} قطعة
+                </div>
+                <div class="product-price-row">
+                    {% if prod.discount_price %}
+                        <span class="product-price">{{ prod.discount_price }} جنيه <span style="text-decoration: line-through; color: var(--text-muted); font-size: 0.85rem; margin-right: 6px;">{{ prod.price }} جنيه</span></span>
+                    {% else %}
+                        <span class="product-price">{{ prod.price }} جنيه</span>
+                    {% endif %}
+                    {% if prod.stock > 0 %}
+                    <button class="btn-text-add ajax-add-to-cart" data-id="{{ prod.id }}">أضف للسلة +</button>
+                    {% else %}
+                    <span style="color: #ef4444; font-size: 0.85rem;">غير متوفر</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const maxStock = {{ product.stock|default:0 }};
+    const qtyInput = document.getElementById("quantity-input");
+    
+    function incrementQty() {
+        let val = parseInt(qtyInput.value);
+        if (val < maxStock) {
+            qtyInput.value = val + 1;
+        }
+    }
+    
+    function decrementQty() {
+        let val = parseInt(qtyInput.value);
+        if (val > 1) {
+            qtyInput.value = val - 1;
+        }
+    }
+</script>
+{% endblock %}

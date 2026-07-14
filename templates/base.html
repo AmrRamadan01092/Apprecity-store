@@ -1,0 +1,122 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Apprecity | متجر الإكسسوارات الفاخرة{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Premium Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo-area">
+                <a href="{% url 'store:home' %}" class="logo">Apprecity</a>
+            </div>
+            
+            <nav class="nav-bar">
+                <ul class="nav-links">
+                    <li><a href="{% url 'store:home' %}" class="{% if request.resolver_match.view_name == 'store:home' %}active{% endif %}">الرئيسية</a></li>
+                    <li><a href="{% url 'store:shop' %}" class="{% if request.resolver_match.view_name == 'store:shop' %}active{% endif %}">تسوق الإكسسوارات</a></li>
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'store:dashboard' %}" class="{% if request.resolver_match.view_name == 'store:dashboard' %}active{% endif %}">حسابي</a></li>
+                        <li><a href="{% url 'store:logout' %}">خروج</a></li>
+                    {% else %}
+                        <li><a href="{% url 'store:login' %}" class="{% if request.resolver_match.view_name == 'store:login' %}active{% endif %}">دخول</a></li>
+                        <li><a href="{% url 'store:register' %}" class="{% if request.resolver_match.view_name == 'store:register' %}active{% endif %}">تسجيل</a></li>
+                    {% endif %}
+                    {% if user.is_staff %}
+                        <li><a href="{% url 'store:add_product' %}" style="color: var(--primary); font-weight: 700;">إضافة منتج +</a></li>
+                        <li><a href="/admin/" target="_blank">لوحة الإدارة</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            
+            <div class="header-actions">
+                <!-- Search Trigger -->
+                <div class="search-box-header">
+                    <form action="{% url 'store:shop' %}" method="get" class="search-form-header">
+                        <input type="text" name="search" placeholder="ابحث عن قطعة..." value="{{ request.GET.search|default:'' }}">
+                        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    </form>
+                </div>
+                
+                <!-- Cart Icon -->
+                <a href="{% url 'store:cart_detail' %}" class="cart-trigger">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span class="cart-count" id="cart-badge">0</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Alert Messages (Notifications) -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <span>{{ message }}</span>
+            <button class="close-alert" onclick="this.parentElement.remove();">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Premium Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-col about">
+                <h3 class="footer-logo">Apprecity</h3>
+                <p>وجهتكم الأولى للإكسسوارات والمجوهرات الفاخرة التي تضفي لمسة من الأناقة والتفرد على إطلالتكم اليومية.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#"><i class="fa-brands fa-pinterest"></i></a>
+                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#"><i class="fa-brands fa-twitter"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-col links">
+                <h4>روابط سريعة</h4>
+                <ul>
+                    <li><a href="{% url 'store:home' %}">الرئيسية</a></li>
+                    <li><a href="{% url 'store:shop' %}">المتجر الرئيسي</a></li>
+                    <li><a href="{% url 'store:cart_detail' %}">سلة المشتريات</a></li>
+                    <li><a href="/admin/">لوحة التحكم</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-col contact">
+                <h4>تواصل معنا</h4>
+                <p><i class="fa-solid fa-location-dot"></i>كفر الشيخ، جمهورية مصر العربية</p>
+                <p><i class="fa-solid fa-phone"></i> 4123 282 100 20+</p>
+                <p><i class="fa-solid fa-envelope"></i> support@apprecity.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 متجر Apprecity لبيع الإكسسوارات الفاخرة. جميع الحقوق محفوظة.</p>
+        </div>
+    </footer>
+
+    <!-- Global Javascript -->
+    <script src="{% static 'js/cart.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

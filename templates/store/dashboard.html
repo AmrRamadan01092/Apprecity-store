@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Apprecity | لوحة التحكم{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top: 4rem;">
+    {% if is_manager %}
+    <!-- Manager Admin Panel Dashboard -->
+    <div class="section-header" style="margin-bottom: 3.5rem;">
+        <span class="section-subtitle">إحصائيات متجر Apprecity</span>
+        <h2 class="section-title">لوحة تحكم المدير العام</h2>
+    </div>
+
+    <!-- Analytics Cards Row -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-bottom: 4rem;">
+        <!-- Card 1: Sales -->
+        <div class="cart-summary" style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 2rem; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <span style="color: var(--text-muted); display: block; font-size: 0.95rem;">إجمالي المبيعات النشطة</span>
+                <h3 style="font-family: var(--font-heading); font-size: 2.2rem; color: var(--primary); margin-top: 0.5rem; text-shadow: 0 0 10px rgba(212,175,55,0.2);">{{ total_sales }} جنيه</h3>
+            </div>
+            <i class="fa-solid fa-circle-dollar-to-slot" style="font-size: 3rem; color: var(--primary); opacity: 0.3;"></i>
+        </div>
+        <!-- Card 2: Orders -->
+        <div class="cart-summary" style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 2rem; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <span style="color: var(--text-muted); display: block; font-size: 0.95rem;">إجمالي طلبات الشراء</span>
+                <h3 style="font-family: var(--font-heading); font-size: 2.2rem; color: var(--primary-light); margin-top: 0.5rem;">{{ total_orders }} طلب</h3>
+            </div>
+            <i class="fa-solid fa-truck-fast" style="font-size: 3rem; color: var(--primary-light); opacity: 0.3;"></i>
+        </div>
+        <!-- Card 3: Customers -->
+        <div class="cart-summary" style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 2rem; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <span style="color: var(--text-muted); display: block; font-size: 0.95rem;">عدد العملاء المسجلين</span>
+                <h3 style="font-family: var(--font-heading); font-size: 2.2rem; color: #10b981; margin-top: 0.5rem;">{{ total_customers }} عميل</h3>
+            </div>
+            <i class="fa-solid fa-users" style="font-size: 3rem; color: #10b981; opacity: 0.3;"></i>
+        </div>
+    </div>
+
+    <!-- Manager Layout Columns -->
+    <div style="display: grid; grid-template-columns: 1fr; gap: 3rem;">
+        
+        <!-- Table 1: All Store Orders -->
+        <div class="cart-table-wrapper" style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 2rem;">
+            <h3 style="font-family: var(--font-heading); color: var(--primary); margin-bottom: 1.5rem;">جميع الطلبات الواردة</h3>
+            {% if all_orders %}
+            <table class="cart-table" style="font-size: 0.9rem;">
+                <thead>
+                    <tr>
+                        <th>رقم الطلب</th>
+                        <th>العميل</th>
+                        <th>الهاتف</th>
+                        <th>المحافظة والعنوان</th>
+                        <th>القطع المطلوبة</th>
+                        <th>الشحن</th>
+                        <th>الخصم</th>
+                        <th>السعر الإجمالي</th>
+                        <th>تغيير الحالة</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in all_orders %}
+                    <tr>
+                        <td style="font-family: var(--font-heading); font-weight: 600; color: var(--primary-light);">#{{ order.id }}</td>
+                        <td>
+                            <strong>{{ order.first_name }} {{ order.last_name }}</strong>
+                            {% if order.user %}
+                                <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">حساب: @{{ order.user.username }}</span>
+                            {% else %}
+                                <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">زائر (بدون حساب)</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ order.phone }}</td>
+                        <td>{{ order.governorate.name|default:"-" }}، {{ order.city }}، {{ order.address }}</td>
+                        <td>
+                            <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.8rem;">
+                                {% for item in order.items.all %}
+                                <li>- {{ item.product.name }} (الكمية: {{ item.quantity }})</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td>{{ order.shipping_cost }} جنيه</td>
+                        <td style="color: #ef4444;">{% if order.discount_amount > 0 %}-{{ order.discount_amount }} جنيه{% else %}-{% endif %}</td>
+                        <td style="font-weight: 700; color: var(--primary);">{{ order.total_price }} جنيه</td>
+                        <td>
+                            <!-- Status change form -->
+                            <form action="{% url 'store:edit_order_status' order.id %}" method="post" style="display: inline-block; margin: 0;">
+                                {% csrf_token %}
+                                <select name="status" onchange="this.form.submit()" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.4rem; color: var(--text-main); font-family: var(--font-body); font-size: 0.85rem; cursor: pointer; outline: none;">
+                                    <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>قيد الانتظار</option>
+                                    <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>قيد التحضير</option>
+                                    <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>تم الشحن</option>
+                                    <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>تم التوصيل</option>
+                                    <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>ملغي</option>
+                                </select>
+                            </form>
+                        </td>
+                        <td>
+                            <a href="{% url 'store:delete_order' order.id %}" onclick="return confirm('هل أنت متأكد من حذف هذا الطلب نهائياً؟')" style="color: #ef4444; font-size: 0.9rem;" title="حذف الطلب">
+                                <i class="fa-solid fa-trash-can"></i> حذف
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="text-align: center; color: var(--text-muted); padding: 2rem;">لا توجد طلبات مسجلة حالياً.</p>
+            {% endif %}
+        </div>
+
+        <!-- Two Columns: Customers and Shop Settings -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
+            <!-- Column 1: Customers list -->
+            <div class="cart-table-wrapper" style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 2rem;">
+                <h3 style="font-family: var(--font-heading); color: var(--primary); margin-bottom: 1.5rem;">قائمة العملاء المسجلين</h3>
+                {% if customers %}
+                <table class="cart-table" style="font-size: 0.85rem;">
+                    <thead>
+                        <tr>
+                            <th>اسم المستخدم</th>
+                            <th>الاسم بالكامل</th>
+                            <th>البريد الإلكتروني</th>
+                            <th>تاريخ الانضمام</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cust in customers %}
+                        <tr>
+                            <td><strong>@{{ cust.username }}</strong></td>
+                            <td>{{ cust.first_name }} {{ cust.last_name }}</td>
+                            <td>{{ cust.email }}</td>
+                            <td>{{ cust.date_joined|date:"d M Y" }}</td>
+                            <td>
+                                <a href="{% url 'store:delete_user' cust.id %}" onclick="return confirm('هل أنت متأكد من حذف هذا العميل نهائياً من المتجر؟ لا يمكن التراجع عن هذا الإجراء.')" style="color: #ef4444;" title="حذف العميل">
+                                    <i class="fa-solid fa-user-minus"></i> حذف
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="text-align: center; color: var(--text-muted); padding: 2rem;">لا يوجد عملاء مسجلين حالياً.</p>
+                {% endif %}
+            </div>
+
+            <!-- Column 2: Management Links and Coupons -->
+            <div class="cart-summary" style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 2rem;">
+                <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.5rem; font-family: var(--font-heading); color: var(--primary);">أدوات وإعدادات البيع</h3>
+                
+                <!-- Quick links -->
+                <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+                    <a href="{% url 'store:add_coupon' %}" class="btn-primary" style="text-align: center; display: block; font-size: 0.9rem;">
+                        إنشاء كود خصم (كوبون) جديد +
+                    </a>
+                    <a href="{% url 'store:add_governorate' %}" class="btn-secondary" style="text-align: center; display: block; font-size: 0.9rem;">
+                        إضافة محافظة وتكلفة شحن جديدة +
+                    </a>
+                </div>
+
+                <!-- Active coupons list -->
+                <div style="margin-top: 1.5rem;">
+                    <h4 style="color: var(--primary-light); margin-bottom: 1rem;">أكواد الخصم المفعلة حالياً:</h4>
+                    {% if all_coupons %}
+                    <ul style="padding: 0; list-style: none;">
+                        {% for coupon in all_coupons %}
+                        <li style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed rgba(255,255,255,0.05); font-size: 0.9rem;">
+                            <span>كود: <strong style="color: var(--primary);">{{ coupon.code }}</strong> (خصم {{ coupon.discount }}%)</span>
+                            <div>
+                                <a href="{% url 'store:edit_coupon' coupon.id %}" style="color: var(--primary-light); margin-left: 10px; text-decoration: none;">
+                                    <i class="fa-solid fa-pen"></i> تعديل
+                                </a>
+                                <a href="{% url 'store:delete_coupon' coupon.id %}" onclick="return confirm('هل أنت متأكد من حذف الكوبون؟')" style="color: #ef4444; text-decoration: none; margin-right: 8px;">
+                                    <i class="fa-solid fa-trash"></i> حذف
+                                </a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">لا توجد كوبونات خصم مفعلة.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Governorate rates list -->
+                <div style="margin-top: 1.5rem;">
+                    <h4 style="color: var(--primary-light); margin-bottom: 1rem;">أسعار شحن المحافظات:</h4>
+                    {% if all_govs %}
+                    <ul style="padding: 0; list-style: none; max-height: 180px; overflow-y: auto;">
+                        {% for gov in all_govs %}
+                        <li style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed rgba(255,255,255,0.05); font-size: 0.9rem;">
+                            <span>{{ gov.name }} - <strong>{{ gov.shipping_cost }} جنيه</strong></span>
+                            <div>
+                                <a href="{% url 'store:edit_governorate' gov.id %}" style="color: var(--primary-light); margin-left: 10px; text-decoration: none;">
+                                    <i class="fa-solid fa-pen"></i> تعديل
+                                </a>
+                                <a href="{% url 'store:delete_governorate' gov.id %}" onclick="return confirm('هل أنت متأكد من حذف المحافظة؟')" style="color: #ef4444; text-decoration: none; margin-right: 8px;">
+                                    <i class="fa-solid fa-trash"></i> حذف
+                                </a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">لم يتم إضافة أي محافظات وتكاليف شحن بعد.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Regular Customer Dashboard -->
+    <div class="section-header" style="margin-bottom: 3.5rem;">
+        <span class="section-subtitle">حسابك الشخصي</span>
+        <h2 class="section-title">مرحباً بك، {{ user.first_name }} {{ user.last_name }}</h2>
+    </div>
+
+    <div class="cart-layout" style="grid-template-columns: 320px 1fr;">
+        <!-- Left: Account Details Card -->
+        <div class="cart-summary" style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 2rem; align-self: start;">
+            <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.5rem; font-family: var(--font-heading); color: var(--primary);">معلومات الحساب</h3>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.95rem;">
+                <div>
+                    <span style="color: var(--text-muted); display: block;">اسم المستخدم:</span>
+                    <strong>{{ user.username }}</strong>
+                </div>
+                <div>
+                    <span style="color: var(--text-muted); display: block;">الاسم الكامل:</span>
+                    <strong>{{ user.first_name }} {{ user.last_name }}</strong>
+                </div>
+                <div>
+                    <span style="color: var(--text-muted); display: block;">البريد الإلكتروني:</span>
+                    <strong>{{ user.email }}</strong>
+                </div>
+                <div>
+                    <span style="color: var(--text-muted); display: block;">رتبة الحساب:</span>
+                    <span style="color: var(--text-muted); font-weight: 500;"><i class="fa-solid fa-user"></i> عميل مسجل</span>
+                </div>
+            </div>
+
+            <a href="{% url 'store:logout' %}" class="btn-secondary" style="display: block; text-align: center; margin-top: 2rem; border-color: #ef4444; color: #ef4444;">
+                تسجيل الخروج <i class="fa-solid fa-right-from-bracket" style="margin-right: 6px;"></i>
+            </a>
+        </div>
+
+        <!-- Right: Order History -->
+        <div class="cart-table-wrapper" style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 2rem;">
+            <h3 style="font-family: var(--font-heading); color: var(--primary); margin-bottom: 1.5rem;">سجل طلباتك السابقة</h3>
+            
+            {% if orders %}
+            <table class="cart-table" style="font-size: 0.95rem;">
+                <thead>
+                    <tr>
+                        <th>رقم الطلب</th>
+                        <th>تاريخ الطلب</th>
+                        <th>المحافظة والعنوان</th>
+                        <th>القطع المشتراة</th>
+                        <th>قيمة الشحن</th>
+                        <th>الخصم المطبق</th>
+                        <th>إجمالي السعر</th>
+                        <th>حالة الطلب</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td style="font-family: var(--font-heading); font-weight: 600; color: var(--primary-light);">#{{ order.id }}</td>
+                        <td>{{ order.created_at|date:"d M Y, h:i A" }}</td>
+                        <td>{{ order.governorate.name|default:"-" }}، {{ order.city }}، {{ order.address }}</td>
+                        <td>
+                            <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem;">
+                                {% for item in order.items.all %}
+                                <li>- {{ item.product.name }} (الكمية: {{ item.quantity }})</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td>{{ order.shipping_cost }} جنيه</td>
+                        <td style="color: #ef4444;">{% if order.discount_amount > 0 %}-{{ order.discount_amount }} جنيه{% else %}-{% endif %}</td>
+                        <td style="font-weight: 700; color: var(--primary);">{{ order.total_price }} جنيه</td>
+                        <td>
+                            {% if order.status == 'pending' %}
+                                <span class="badge-stock" style="background: rgba(212, 175, 55, 0.15); color: var(--primary-light);">قيد المعالجة</span>
+                            {% elif order.status == 'processing' %}
+                                <span class="badge-stock" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">قيد التحضير</span>
+                            {% elif order.status == 'shipped' %}
+                                <span class="badge-stock" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">تم الشحن</span>
+                            {% elif order.status == 'delivered' %}
+                                <span class="badge-stock" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">تم التوصيل</span>
+                            {% else %}
+                                <span class="badge-stock" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">ملغي</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 4rem 2rem; color: var(--text-muted);">
+                <i class="fa-solid fa-clipboard-list" style="font-size: 3rem; color: var(--primary); opacity: 0.3; margin-bottom: 1rem; display: block;"></i>
+                <h4>لم تقم بأي طلبات شراء حتى الآن.</h4>
+                <p style="margin-top: 0.5rem;"><a href="{% url 'store:shop' %}" style="color: var(--primary); text-decoration: underline;">اذهب للمتجر وتسوق الآن</a></p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
