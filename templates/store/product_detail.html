@@ -18,12 +18,28 @@
 
         <!-- Right Column: Product Info -->
         <div class="detail-info">
+            {% if not product.is_active %}
+                <span class="badge-stock badge-outofstock" style="display: inline-block; margin-bottom: 1rem; width: fit-content; background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 0.5rem 1rem; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600;">
+                    ⚠️ هذا المنتج غير نشط ومخفي عن العملاء حالياً
+                </span>
+            {% endif %}
             <span class="detail-category">{{ product.category.name }}</span>
             <h1 class="detail-title">{{ product.name }}</h1>
             {% if product.discount_price %}
                 <div class="detail-price">{{ product.discount_price }} جنيه <span style="text-decoration: line-through; color: var(--text-muted); font-size: 1.2rem; margin-right: 10px;">{{ product.price }} جنيه</span></div>
             {% else %}
                 <div class="detail-price">{{ product.price }} جنيه</div>
+            {% endif %}
+            
+            {% if product.get_reviews_count > 0 %}
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; font-size: 1.05rem; justify-content: flex-start;">
+                <span style="color: #f59e0b;">
+                    {% for _ in product.get_average_rating_range %}★{% endfor %}{% for _ in product.get_average_rating_empty_range %}☆{% endfor %}
+                </span>
+                <span style="color: var(--text-muted); font-size: 0.85rem;">
+                    {{ product.get_average_rating }} / 5 ({{ product.get_reviews_count }} تقييم)
+                </span>
+            </div>
             {% endif %}
             
             <p class="detail-desc">{{ product.description }}</p>
@@ -79,6 +95,92 @@
     </div>
 </section>
 
+<!-- Customer Reviews Section -->
+<section class="section" style="border-top: 1px solid var(--border-color); margin-top: 5rem; padding-top: 4rem;">
+    <div class="section-header">
+        <span class="section-subtitle">آراء عملائنا</span>
+        <h2 class="section-title">تقييمات ومراجعات القطعة</h2>
+    </div>
+
+    <div class="cart-layout" style="grid-template-columns: 1fr 1.5fr; gap: 3.5rem; margin-top: 3rem;">
+        <!-- Left: Form to add review & Summary -->
+        <div class="cart-summary" style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 2.5rem; align-self: start; background: var(--bg-surface);">
+            <h3 style="font-family: var(--font-heading); color: var(--primary); margin-bottom: 1.5rem;">ملخص التقييمات</h3>
+            
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2.5rem;">
+                <div style="font-size: 3rem; font-family: var(--font-heading); font-weight: 700; color: var(--primary);">
+                    {{ product.get_average_rating }}
+                </div>
+                <div>
+                    <div style="color: #f59e0b; font-size: 1.25rem;">
+                        {% for _ in product.get_average_rating_range %}★{% endfor %}{% for _ in product.get_average_rating_empty_range %}☆{% endfor %}
+                    </div>
+                    <span style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-top: 0.25rem;">بناءً على {{ product.get_reviews_count }} تقييم</span>
+                </div>
+            </div>
+
+            <!-- Form to Add Review -->
+            <h4 style="font-family: var(--font-heading); color: var(--text-main); border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-bottom: 1.25rem;">أضف تقييمك للقطعة</h4>
+            <form method="post" action="" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                {% csrf_token %}
+                
+                <div class="form-group" style="margin: 0;">
+                    <label for="id_name" style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">الاسم الكامل / اللقب *</label>
+                    {{ form.name }}
+                </div>
+                
+                <div class="form-group" style="margin: 0;">
+                    <label for="id_rating" style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">التقييم بالنجوم *</label>
+                    <select name="rating" id="id_rating" class="form-input" style="outline: none;">
+                        <option value="5" selected>★★★★★ (5/5)</option>
+                        <option value="4">★★★★☆ (4/5)</option>
+                        <option value="3">★★★☆☆ (3/5)</option>
+                        <option value="2">★★☆☆☆ (2/5)</option>
+                        <option value="1">★☆☆☆☆ (1/5)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin: 0;">
+                    <label for="id_comment" style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">رأيك وتجربتك *</label>
+                    {{ form.comment }}
+                </div>
+
+                <button type="submit" class="btn-primary" style="padding: 0.85rem; border-radius: 4px; font-size: 0.95rem; margin-top: 0.5rem; width: 100%;">
+                    نشر التقييم والتعليق <i class="fa-solid fa-paper-plane" style="margin-right: 6px;"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Right: Reviews List -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <h3 style="font-family: var(--font-heading); color: var(--primary); margin-bottom: 0.5rem;">مراجعات العملاء ({{ reviews|length }})</h3>
+            
+            {% if reviews %}
+                {% for review in reviews %}
+                <div class="cart-summary" style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.75rem 2rem; background: var(--bg-surface);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <div>
+                            <strong style="color: var(--text-main); font-size: 1rem; display: block;">{{ review.name }}</strong>
+                            <small style="color: var(--text-muted); font-size: 0.8rem;">{{ review.created_at|date:"d M Y, h:i A" }}</small>
+                        </div>
+                        <div style="color: #f59e0b; font-size: 1rem;">
+                            {% if review.rating == 5 %}★★★★★{% elif review.rating == 4 %}★★★★☆{% elif review.rating == 3 %}★★★☆☆{% elif review.rating == 2 %}★★☆☆☆{% else %}★☆☆☆☆{% endif %}
+                        </div>
+                    </div>
+                    <p style="color: var(--text-main); font-size: 0.95rem; line-height: 1.6; white-space: pre-line;">{{ review.comment }}</p>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="text-align: center; padding: 4rem 2rem; border: 1px dashed var(--border-color); border-radius: var(--radius-md); color: var(--text-muted);">
+                    <i class="fa-regular fa-star" style="font-size: 2.5rem; color: var(--primary); opacity: 0.4; margin-bottom: 1rem; display: block;"></i>
+                    <h4>لا توجد تقييمات لهذه القطعة بعد.</h4>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem;">كن أول من يشارك تجربته مع هذه الإكسسوارات الفاخرة!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
 <!-- Related Products Section -->
 {% if related_products %}
 <section class="section" style="border-top: 1px solid var(--border-color); margin-top: 4rem;">
@@ -118,6 +220,12 @@
             <div class="product-details">
                 <span class="product-category">{{ prod.category.name }}</span>
                 <a href="{{ prod.get_absolute_url }}"><h3 class="product-title">{{ prod.name }}</h3></a>
+                {% if prod.get_reviews_count > 0 %}
+                <div style="color: #f59e0b; font-size: 0.85rem; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.25rem; justify-content: flex-start;">
+                    <span>{% for _ in prod.get_average_rating_range %}★{% endfor %}{% for _ in prod.get_average_rating_empty_range %}☆{% endfor %}</span>
+                    <span style="color: var(--text-muted); font-size: 0.75rem;">({{ prod.get_reviews_count }})</span>
+                </div>
+                {% endif %}
                 <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
                     الكمية المتوفرة: {{ prod.stock }} قطعة
                 </div>

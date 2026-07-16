@@ -19,6 +19,21 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Sleek Announcement Bar -->
+    <div class="announcement-bar">
+        <div class="announcement-slider">
+            {% if active_announcements %}
+                {% for ann in active_announcements %}
+                    <span class="announcement-item">{{ ann.text }}</span>
+                {% endfor %}
+            {% else %}
+                <span class="announcement-item">✨ مرحباً بكم في متجر APRICITY للإكسسوارات الفاخرة والمجوهرات الراقية ✨</span>
+                <span class="announcement-item">🚚 شحن مجاني لجميع المحافظات للطلبات التي تتعدى قيمتها الحد الأدنى للشحن المجاني!</span>
+                <span class="announcement-item">💎 استخدم كود الخصم WELCOME10 لتحصل على خصم 10% عند أول طلب لك!</span>
+            {% endif %}
+        </div>
+    </div>
+
     <!-- Premium Header -->
     <header class="header">
         <div class="header-container">
@@ -92,10 +107,13 @@
                 </h3>
                 <p>وجهتكم الأولى للإكسسوارات والمجوهرات الفاخرة التي تضفي لمسة من الأناقة والتفرد على إطلالتكم اليومية.</p>
                 <div class="social-links">
-                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#"><i class="fa-brands fa-pinterest"></i></a>
-                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="https://www.instagram.com/apricity__jewellery?igsh=MXBtMXJhOXhkdmJ4NA%3D%3D&utm_source=qr" target="_blank">
+                    <i class="fa-brands fa-instagram"></i>
+                    </a>
+
+                    <a href="https://www.tiktok.com/@apricity__jewellery?_r=1&_t=ZS-985SoQN2XKO" target="_blank">
+                    <i class="fa-brands fa-tiktok"></i>
+                    </a>
                 </div>
             </div>
             

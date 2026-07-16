@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, Order, OrderItem, Governorate, StoreSetting, Coupon
+from .models import Category, Product, Order, OrderItem, Governorate, StoreSetting, Coupon, Review, Announcement
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -53,3 +53,17 @@ class CouponAdmin(admin.ModelAdmin):
     list_display = ['code', 'discount', 'active']
     list_editable = ['active']
     search_fields = ['code']
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ['product', 'name', 'rating', 'created_at']
+    list_filter = ['rating', 'created_at']
+    search_fields = ['name', 'comment', 'product__name']
+
+
+@admin.register(Announcement)
+class AnnouncementAdmin(admin.ModelAdmin):
+    list_display = ['text', 'active', 'created_at']
+    list_editable = ['active']
+    search_fields = ['text']

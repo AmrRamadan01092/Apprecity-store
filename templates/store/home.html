@@ -62,10 +62,10 @@
             </div>
         </a>
         <a href="{% url 'store:shop' %}" class="category-card">
-            <img src="https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&q=80&w=600" alt="نظارات" class="category-card-img">
+            <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&q=80&w=600" alt="أساور" class="category-card-img">
             <div class="category-card-info">
                 <span>مجموعة</span>
-                <h3>نظارات شمسية</h3>
+                <h3>أساور راقية</h3>
             </div>
         </a>
         {% endfor %}
@@ -110,6 +110,12 @@
             <div class="product-details">
                 <span class="product-category">{{ product.category.name }}</span>
                 <a href="{{ product.get_absolute_url }}"><h3 class="product-title">{{ product.name }}</h3></a>
+                {% if product.get_reviews_count > 0 %}
+                <div style="color: #f59e0b; font-size: 0.85rem; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.25rem; justify-content: flex-start;">
+                    <span>{% for _ in product.get_average_rating_range %}★{% endfor %}{% for _ in product.get_average_rating_empty_range %}☆{% endfor %}</span>
+                    <span style="color: var(--text-muted); font-size: 0.75rem;">({{ product.get_reviews_count }})</span>
+                </div>
+                {% endif %}
                 <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
                     الكمية المتوفرة: {{ product.stock }} قطعة
                 </div>

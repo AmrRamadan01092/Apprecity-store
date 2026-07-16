@@ -26,6 +26,7 @@ urlpatterns = [
     path('product/add/', views.add_product, name='add_product'),
     path('product/edit/<int:product_id>/', views.edit_product, name='edit_product'),
     path('product/delete/<int:product_id>/', views.delete_product, name='delete_product'),
+    path('product/toggle-active/<int:product_id>/', views.toggle_product_active, name='toggle_product_active'),
     path('order/status/<int:order_id>/', views.edit_order_status, name='edit_order_status'),
     path('order/delete/<int:order_id>/', views.delete_order, name='delete_order'),
     path('user/delete/<int:user_id>/', views.delete_user_view, name='delete_user'),
@@ -35,4 +36,10 @@ urlpatterns = [
     path('governorate/add/', views.add_governorate_view, name='add_governorate'),
     path('governorate/edit/<int:gov_id>/', views.edit_governorate_view, name='edit_governorate'),
     path('governorate/delete/<int:gov_id>/', views.delete_governorate_view, name='delete_governorate'),
+    
+    # Announcement management urls
+    path('announcement/add/', views.add_announcement_view, name='add_announcement'),
+    path('announcement/edit/<int:ann_id>/', views.edit_announcement_view, name='edit_announcement'),
+    path('announcement/delete/<int:ann_id>/', views.delete_announcement_view, name='delete_announcement'),
+    path('announcement/toggle-active/<int:ann_id>/', views.toggle_announcement_active, name='toggle_announcement_active'),
 ]

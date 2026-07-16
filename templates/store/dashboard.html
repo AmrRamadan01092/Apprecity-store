@@ -113,6 +113,90 @@
             {% endif %}
         </div>
 
+        <!-- Table 2: Product Catalog Management -->
+        <div class="cart-table-wrapper" style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 2rem; margin-top: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="font-family: var(--font-heading); color: var(--primary); margin: 0;">إدارة المنتجات والمعرض</h3>
+                <a href="{% url 'store:add_product' %}" class="btn-primary" style="padding: 0.5rem 1.5rem; font-size: 0.85rem; border-radius: 4px; text-decoration: none;">
+                    إضافة منتج جديد +
+                </a>
+            </div>
+            
+            {% if all_products %}
+            <table class="cart-table" style="font-size: 0.9rem;">
+                <thead>
+                    <tr>
+                        <th>صورة المنتج</th>
+                        <th>اسم المنتج</th>
+                        <th>القسم</th>
+                        <th>السعر الأساسي</th>
+                        <th>السعر بعد الخصم</th>
+                        <th>المخزون</th>
+                        <th>حالة العرض</th>
+                        <th>تغيير الحالة</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prod in all_products %}
+                    <tr>
+                        <td>
+                            {% if prod.image %}
+                                <img src="{{ prod.image.url }}" alt="{{ prod.name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                            {% else %}
+                                <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=50" alt="{{ prod.name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ prod.get_absolute_url }}" style="font-weight: 600; color: var(--text-main); text-decoration: none;">
+                                {{ prod.name }}
+                            </a>
+                        </td>
+                        <td>{{ prod.category.name }}</td>
+                        <td>{{ prod.price }} جنيه</td>
+                        <td style="color: var(--primary);">{{ prod.discount_price|default:"-" }} {% if prod.discount_price %}جنيه{% endif %}</td>
+                        <td>
+                            {% if prod.stock <= 3 and prod.stock > 0 %}
+                                <span style="color: #f59e0b; font-weight: 600;">{{ prod.stock }} قطعة (محدود)</span>
+                            {% elif prod.stock == 0 %}
+                                <span style="color: #ef4444; font-weight: 600;">نفذ من المخزن</span>
+                            {% else %}
+                                <span>{{ prod.stock }} قطع</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if prod.is_active %}
+                                <span class="badge-stock badge-instock" style="background-color: #d1fae5; color: #065f46; font-size: 0.8rem; padding: 0.25rem 0.75rem; border-radius: 9999px; font-weight: 600;">نشط (معروض)</span>
+                            {% else %}
+                                <span class="badge-stock badge-outofstock" style="background-color: #fee2e2; color: #991b1b; font-size: 0.8rem; padding: 0.25rem 0.75rem; border-radius: 9999px; font-weight: 600;">غير نشط (مخفي)</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'store:toggle_product_active' prod.id %}" class="btn-secondary" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; text-decoration: none; border-radius: 4px; display: inline-block;">
+                                {% if prod.is_active %}
+                                    <i class="fa-solid fa-eye-slash"></i> إخفاء المنتج
+                                {% else %}
+                                    <i class="fa-solid fa-eye"></i> عرض وتنشيط
+                                {% endif %}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{% url 'store:edit_product' prod.id %}" style="color: var(--primary-light); margin-left: 15px; font-size: 0.9rem; text-decoration: none;" title="تعديل المنتج">
+                                <i class="fa-solid fa-pen-to-square"></i> تعديل
+                            </a>
+                            <a href="{% url 'store:delete_product' prod.id %}" onclick="return confirm('هل أنت متأكد من حذف المنتج نهائياً؟ لا يمكن التراجع عن هذا الإجراء.')" style="color: #ef4444; font-size: 0.9rem; text-decoration: none;" title="حذف المنتج">
+                                <i class="fa-solid fa-trash-can"></i> حذف
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="text-align: center; color: var(--text-muted); padding: 2rem;">لا توجد منتجات مضافة في المعرض حالياً.</p>
+            {% endif %}
+        </div>
+
         <!-- Two Columns: Customers and Shop Settings -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
             <!-- Column 1: Customers list -->
@@ -209,6 +293,51 @@
                     </ul>
                     {% else %}
                     <p style="color: var(--text-muted); font-size: 0.85rem;">لم يتم إضافة أي محافظات وتكاليف شحن بعد.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Announcement bar management list -->
+                <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h4 style="color: var(--primary-light); margin: 0;">شريط الإعلانات المتحرك:</h4>
+                        <a href="{% url 'store:add_announcement' %}" class="btn-text-add" style="font-size: 0.85rem; color: var(--primary); text-decoration: none; font-weight: 600;">
+                            + إضافة إعلان جديد
+                        </a>
+                    </div>
+                    {% if all_announcements %}
+                    <ul style="padding: 0; list-style: none; max-height: 200px; overflow-y: auto;">
+                        {% for ann in all_announcements %}
+                        <li style="display: flex; flex-direction: column; padding: 0.75rem 0; border-bottom: 1px dashed rgba(255,255,255,0.05); font-size: 0.9rem; gap: 0.35rem;">
+                            <span style="font-weight: 500; color: var(--text-main); line-height: 1.4;">
+                                {{ ann.text }}
+                            </span>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                {% if ann.active %}
+                                    <span style="color: #10b981; font-size: 0.8rem; font-weight: 600;">
+                                        <i class="fa-solid fa-circle-check"></i> معروض حالياً
+                                    </span>
+                                {% else %}
+                                    <span style="color: var(--text-muted); font-size: 0.8rem;">
+                                        <i class="fa-solid fa-circle-minus"></i> مخفي وموقوف
+                                    </span>
+                                {% endif %}
+                                <div style="display: flex; gap: 10px;">
+                                    <a href="{% url 'store:toggle_announcement_active' ann.id %}" style="color: var(--primary-light); text-decoration: none; font-size: 0.85rem;" title="تغيير حالة العرض">
+                                        {% if ann.active %}تعطيل{% else %}تنشيط{% endif %}
+                                    </a>
+                                    <a href="{% url 'store:edit_announcement' ann.id %}" style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem;" title="تعديل">
+                                        تعديل
+                                    </a>
+                                    <a href="{% url 'store:delete_announcement' ann.id %}" onclick="return confirm('هل أنت متأكد من حذف هذا الإعلان؟')" style="color: #ef4444; text-decoration: none; font-size: 0.85rem;" title="حذف">
+                                        حذف
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">لا توجد إعلانات مخصصة في قاعدة البيانات (يعرض الموقع الإعلانات الافتراضية حالياً).</p>
                     {% endif %}
                 </div>
             </div>

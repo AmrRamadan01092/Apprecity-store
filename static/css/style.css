@@ -1250,3 +1250,36 @@ img {
         gap: 1rem;
     }
 }
+
+/* Sleek Announcement Bar */
+.announcement-bar {
+    background: linear-gradient(135deg, var(--primary) 0%, #b3862b 100%);
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 0.5rem 1rem;
+    overflow: hidden;
+    position: relative;
+    z-index: 1001;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    direction: rtl;
+}
+
+.announcement-slider {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+    animation: marquee-announcement 30s linear infinite;
+    gap: 5rem;
+}
+
+.announcement-item {
+    display: inline-block;
+}
+
+@keyframes marquee-announcement {
+    0% { transform: translateX(50%); }
+    100% { transform: translateX(-50%); }
+}

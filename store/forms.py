@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from .models import Product, Category, Coupon, Governorate, Order
+from .models import Product, Category, Coupon, Governorate, Order, Review, Announcement
 
 class ProductForm(forms.ModelForm):
     class Meta:
@@ -90,4 +90,34 @@ class OrderStatusForm(forms.ModelForm):
         }
         widgets = {
             'status': forms.Select(attrs={'class': 'form-input'}),
+        }
+
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['name', 'rating', 'comment']
+        labels = {
+            'name': 'الاسم بالكامل / اللقب',
+            'rating': 'التقييم بالنجوم',
+            'comment': 'اكتب تعليقك ومراجعتك هنا',
+        }
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'مثال: أحمد محمد'}),
+            'rating': forms.Select(attrs={'class': 'form-input'}),
+            'comment': forms.Textarea(attrs={'class': 'form-input', 'rows': 4, 'placeholder': 'شاركنا رأيك في جودة القطعة، التغليف، وسرعة التوصيل...'}),
+        }
+
+
+class AnnouncementForm(forms.ModelForm):
+    class Meta:
+        model = Announcement
+        fields = ['text', 'active']
+        labels = {
+            'text': 'نص الإعلان',
+            'active': 'تفعيل الإعلان (معروض في الشريط المتحرك)',
+          }
+        widgets = {
+            'text': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'مثال: خصم 10% بكود WELCOME10 | شحن مجاني للطلبات فوق 500 جنيه!'}),
+            'active': forms.CheckboxInput(attrs={'class': 'form-checkbox'}),
         }

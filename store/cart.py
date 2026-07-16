@@ -38,10 +38,20 @@ class Cart:
     def __iter__(self):
         product_ids = self.cart.keys()
         products = Product.objects.filter(id__in=product_ids)
-        cart = self.cart.copy()
         
+        # Build cart items only for products that exist in the database
+        cart = {}
         for product in products:
-            cart[str(product.id)]['product'] = product
+            pid = str(product.id)
+            cart[pid] = self.cart[pid].copy()
+            cart[pid]['product'] = product
+
+        # Remove any deleted products from the session cart
+        session_keys = list(self.cart.keys())
+        for pid in session_keys:
+            if pid not in cart:
+                del self.cart[pid]
+        self.save()
 
         for item in cart.values():
             db_product = item['product']

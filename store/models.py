@@ -85,6 +85,22 @@ class Product(models.Model):
     def get_absolute_url(self):
         return reverse('store:product_detail', args=[self.id, self.slug])
 
+    def get_average_rating(self):
+        from django.db.models import Avg
+        avg = self.reviews.aggregate(avg=Avg('rating'))['avg']
+        return round(avg, 1) if avg else 0
+
+    def get_reviews_count(self):
+        return self.reviews.count()
+
+    def get_average_rating_range(self):
+        avg = self.get_average_rating()
+        return range(int(round(avg)))
+
+    def get_average_rating_empty_range(self):
+        avg = self.get_average_rating()
+        return range(5 - int(round(avg)))
+
 
 class Order(models.Model):
     STATUS_CHOICES = (
@@ -129,4 +145,42 @@ class OrderItem(models.Model):
         verbose_name_plural = "عناصر الطلبات"
 
     def __str__(self):
-        return f"المنتج: {self.product.name} (الكمية: {self.quantity})"
+        return f"{self.product.name} (x{self.quantity})"
+
+
+class Review(models.Model):
+    RATING_CHOICES = (
+        (1, '★☆☆☆☆ (1/5)'),
+        (2, '★★☆☆☆ (2/5)'),
+        (3, '★★★☆☆ (3/5)'),
+        (4, '★★★★☆ (4/5)'),
+        (5, '★★★★★ (5/5)'),
+    )
+    product = models.ForeignKey(Product, related_name='reviews', on_delete=models.CASCADE, verbose_name="المنتج")
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviews', verbose_name="المستخدم")
+    name = models.CharField(max_length=100, verbose_name="اسم العميل")
+    rating = models.PositiveIntegerField(choices=RATING_CHOICES, default=5, verbose_name="التقييم بالنجوم")
+    comment = models.TextField(verbose_name="التعليق والملاحظات")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
+
+    class Meta:
+        ordering = ('-created_at',)
+        verbose_name = "تقييم منتج"
+        verbose_name_plural = "تقييمات المنتجات"
+
+    def __str__(self):
+        return f"تقييم {self.product.name} من {self.name} - {self.rating} نجوم"
+
+
+class Announcement(models.Model):
+    text = models.CharField(max_length=255, verbose_name="نص الإعلان")
+    active = models.BooleanField(default=True, verbose_name="نشط / معروض")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
+
+    class Meta:
+        ordering = ('-created_at',)
+        verbose_name = "إعلان"
+        verbose_name_plural = "إعلانات شريط الإعلانات"
+
+    def __str__(self):
+        return self.text

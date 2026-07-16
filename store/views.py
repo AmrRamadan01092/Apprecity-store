@@ -8,9 +8,9 @@ from django.contrib.auth import login as auth_login, logout as auth_logout, auth
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from .models import Category, Product, Order, OrderItem, Governorate, StoreSetting, Coupon
+from .models import Category, Product, Order, OrderItem, Governorate, StoreSetting, Coupon, Review, Announcement
 from .cart import Cart
-from .forms import UserRegisterForm, ProductForm, CouponForm, GovernorateForm, OrderStatusForm
+from .forms import UserRegisterForm, ProductForm, CouponForm, GovernorateForm, OrderStatusForm, ReviewForm, AnnouncementForm
 
 def home(request):
     # Fetch 4 categories and latest 8 products
@@ -67,16 +67,49 @@ def shop(request, category_slug=None):
     })
 
 def product_detail(request, id, slug):
-    product = get_object_or_404(Product, id=id, slug=slug, is_active=True)
+    # Allow staff members to preview inactive products, regular users get 404
+    if request.user.is_staff:
+        product = get_object_or_404(Product, id=id, slug=slug)
+    else:
+        product = get_object_or_404(Product, id=id, slug=slug, is_active=True)
     # Recommend 4 related products from the same category
     related_products = Product.objects.filter(
         category=product.category, 
         is_active=True
     ).exclude(id=product.id)[:4]
     
+    reviews = product.reviews.all().order_by('-created_at')
+    
+    if request.method == 'POST':
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.product = product
+            if request.user.is_authenticated:
+                review.user = request.user
+                if request.user.first_name:
+                    review.name = f"{request.user.first_name} {request.user.last_name}".strip()
+                else:
+                    review.name = request.user.username
+            review.save()
+            messages.success(request, 'شكراً لك! تم إضافة تقييمك بنجاح.')
+            return redirect('store:product_detail', id=product.id, slug=product.slug)
+        else:
+            messages.error(request, 'حدث خطأ، يرجى التأكد من ملء جميع خانات التقييم.')
+    else:
+        initial_data = {}
+        if request.user.is_authenticated:
+            if request.user.first_name:
+                initial_data['name'] = f"{request.user.first_name} {request.user.last_name}".strip()
+            else:
+                initial_data['name'] = request.user.username
+        form = ReviewForm(initial=initial_data)
+        
     return render(request, 'store/product_detail.html', {
         'product': product,
-        'related_products': related_products
+        'related_products': related_products,
+        'reviews': reviews,
+        'form': form
     })
 
 def cart_detail(request):
@@ -304,6 +337,8 @@ def dashboard_view(request):
         all_orders = Order.objects.all().order_by('-created_at')
         all_coupons = Coupon.objects.all()
         all_govs = Governorate.objects.all()
+        all_products = Product.objects.all().order_by('-created_at')
+        all_announcements = Announcement.objects.all()
         
         return render(request, 'store/dashboard.html', {
             'is_manager': True,
@@ -313,7 +348,9 @@ def dashboard_view(request):
             'customers': customers,
             'all_orders': all_orders,
             'all_coupons': all_coupons,
-            'all_govs': all_govs
+            'all_govs': all_govs,
+            'all_products': all_products,
+            'all_announcements': all_announcements
         })
         
     orders = request.user.orders.all()
@@ -337,12 +374,21 @@ def add_product(request):
     return render(request, 'store/add_product.html', {'form': form})
 
 @staff_member_required(login_url='store:login')
+def toggle_product_active(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    product.is_active = not product.is_active
+    product.save()
+    status_str = "تنشيطه وعرضه للبيع" if product.is_active else "إلغاء تنشيطه وإخفاؤه"
+    messages.success(request, f'تم {status_str} بنجاح للمنتج "{product.name}".')
+    return redirect('store:dashboard')
+
+@staff_member_required(login_url='store:login')
 def delete_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     product_name = product.name
     product.delete()
-    messages.success(request, f'تم حذف المنتج "{product_name}" نهائياً من المتجر.')
-    return redirect('store:shop')
+    messages.success(request, f'تم حذف المنتج "{product_name}" بنجاح.')
+    return redirect('store:dashboard')
 
 @staff_member_required(login_url='store:login')
 def edit_product(request, product_id):
@@ -477,4 +523,58 @@ def delete_governorate_view(request, gov_id):
     name = gov.name
     gov.delete()
     messages.success(request, f'تم حذف محافظة "{name}" وتكلفة شحنها بنجاح.')
+    return redirect('store:dashboard')
+
+
+@staff_member_required(login_url='store:login')
+def add_announcement_view(request):
+    if request.method == 'POST':
+        form = AnnouncementForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'تم إضافة إعلان الشريط المتحرك بنجاح!')
+            return redirect('store:dashboard')
+    else:
+        form = AnnouncementForm()
+    return render(request, 'store/add_product.html', {
+        'form': form,
+        'title': 'إضافة إعلان جديد للشريط المتحرك',
+        'is_announcement': True
+    })
+
+
+@staff_member_required(login_url='store:login')
+def edit_announcement_view(request, ann_id):
+    ann = get_object_or_404(Announcement, id=ann_id)
+    if request.method == 'POST':
+        form = AnnouncementForm(request.POST, instance=ann)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'تم تعديل الإعلان بنجاح!')
+            return redirect('store:dashboard')
+    else:
+        form = AnnouncementForm(instance=ann)
+    return render(request, 'store/add_product.html', {
+        'form': form,
+        'title': 'تعديل الإعلان المتحرك',
+        'is_announcement': True,
+        'is_edit': True
+    })
+
+
+@staff_member_required(login_url='store:login')
+def delete_announcement_view(request, ann_id):
+    ann = get_object_or_404(Announcement, id=ann_id)
+    ann.delete()
+    messages.success(request, 'تم حذف الإعلان بنجاح.')
+    return redirect('store:dashboard')
+
+
+@staff_member_required(login_url='store:login')
+def toggle_announcement_active(request, ann_id):
+    ann = get_object_or_404(Announcement, id=ann_id)
+    ann.active = not ann.active
+    ann.save()
+    status_str = "تنشيطه وعرضه" if ann.active else "تعطيله وإخفاؤه"
+    messages.success(request, f'تم {status_str} بنجاح للإعلان.')
     return redirect('store:dashboard')

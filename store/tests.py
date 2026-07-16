@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
-from .models import Category, Product, Governorate, StoreSetting, Coupon
+from django.contrib.auth.models import User
+from .models import Category, Product, Governorate, StoreSetting, Coupon, Announcement
 
 class StoreTests(TestCase):
     def setUp(self):
@@ -39,6 +40,22 @@ class StoreTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'ساعة ذهبية')
 
+    def test_inactive_product_detail_page_returns_404_for_customer(self):
+        self.product.is_active = False
+        self.product.save()
+        response = self.client.get(reverse('store:product_detail', args=[self.product.id, self.product.slug]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_inactive_product_detail_page_returns_200_for_staff(self):
+        # Create a staff user and login
+        staff_user = User.objects.create_user(username='staffmember', password='password', is_staff=True)
+        self.client.login(username='staffmember', password='password')
+        self.product.is_active = False
+        self.product.save()
+        response = self.client.get(reverse('store:product_detail', args=[self.product.id, self.product.slug]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '⚠️ هذا المنتج غير نشط')
+
     def test_cart_page_status_code(self):
         response = self.client.get(reverse('store:cart_detail'))
         self.assertEqual(response.status_code, 200)
@@ -74,4 +91,105 @@ class StoreTests(TestCase):
         settings = StoreSetting.get_settings()
         self.assertEqual(settings.free_shipping_threshold, 500.00)
 
+    def test_get_settings_returns_existing(self):
+        StoreSetting.objects.all().delete()
+        StoreSetting.objects.create(free_shipping_threshold=300.00)
+        settings = StoreSetting.get_settings()
+        self.assertEqual(settings.free_shipping_threshold, 300.00)
 
+    def test_toggle_product_active(self):
+        staff_user = User.objects.create_user(username='staffmember2', password='password', is_staff=True)
+        self.client.login(username='staffmember2', password='password')
+        self.assertTrue(self.product.is_active)
+        
+        response = self.client.get(reverse('store:toggle_product_active', args=[self.product.id]))
+        self.assertEqual(response.status_code, 302)
+        self.product.refresh_from_db()
+        self.assertFalse(self.product.is_active)
+        
+        response = self.client.get(reverse('store:toggle_product_active', args=[self.product.id]))
+        self.assertEqual(response.status_code, 302)
+        self.product.refresh_from_db()
+        self.assertTrue(self.product.is_active)
+
+
+class ProductReviewTests(TestCase):
+    def setUp(self):
+        self.category = Category.objects.create(name='سلاسل', slug='necklaces')
+        self.product = Product.objects.create(
+            category=self.category,
+            name='سلسلة ذهب',
+            slug='gold-necklace',
+            price=1500.00,
+            stock=5
+        )
+
+    def test_add_review_post(self):
+        response = self.client.post(
+            reverse('store:product_detail', args=[self.product.id, self.product.slug]),
+            {
+                'name': 'خالد أحمد',
+                'rating': 5,
+                'comment': 'سلسلة رائعة جداً والتوصيل سريع!'
+            }
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.product.reviews.count(), 1)
+        review = self.product.reviews.first()
+        self.assertEqual(review.name, 'خالد أحمد')
+        self.assertEqual(review.rating, 5)
+
+
+class AnnouncementTests(TestCase):
+    def setUp(self):
+        self.staff_user = User.objects.create_user(username='admin_ann', password='password', is_staff=True)
+        self.regular_user = User.objects.create_user(username='regular_ann', password='password', is_staff=False)
+        self.announcement = Announcement.objects.create(text='إعلان تجريبي نشط', active=True)
+
+    def test_announcement_context_processor(self):
+        response = self.client.get(reverse('store:home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('active_announcements', response.context)
+        self.assertEqual(list(response.context['active_announcements']), [self.announcement])
+
+    def test_add_announcement_view_staff(self):
+        self.client.login(username='admin_ann', password='password')
+        response = self.client.post(reverse('store:add_announcement'), {
+            'text': 'إعلان جديد للمتجر',
+            'active': True
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Announcement.objects.count(), 2)
+
+    def test_add_announcement_view_regular_user_denied(self):
+        self.client.login(username='regular_ann', password='password')
+        response = self.client.post(reverse('store:add_announcement'), {
+            'text': 'إعلان اختراق',
+            'active': True
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Announcement.objects.count(), 1)
+
+    def test_edit_announcement_view(self):
+        self.client.login(username='admin_ann', password='password')
+        response = self.client.post(reverse('store:edit_announcement', args=[self.announcement.id]), {
+            'text': 'إعلان معدل بالكامل',
+            'active': False
+        })
+        self.assertEqual(response.status_code, 302)
+        self.announcement.refresh_from_db()
+        self.assertEqual(self.announcement.text, 'إعلان معدل بالكامل')
+        self.assertFalse(self.announcement.active)
+
+    def test_delete_announcement_view(self):
+        self.client.login(username='admin_ann', password='password')
+        response = self.client.get(reverse('store:delete_announcement', args=[self.announcement.id]))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Announcement.objects.count(), 0)
+
+    def test_toggle_announcement_active(self):
+        self.client.login(username='admin_ann', password='password')
+        response = self.client.get(reverse('store:toggle_announcement_active', args=[self.announcement.id]))
+        self.assertEqual(response.status_code, 302)
+        self.announcement.refresh_from_db()
+        self.assertFalse(self.announcement.active)
