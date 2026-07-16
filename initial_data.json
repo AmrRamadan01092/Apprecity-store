@@ -1,0 +1,147 @@
+[
+{
+    "model": "store.category",
+    "pk": 3,
+    "fields": {
+        "name": "خواتم مرصعة",
+        "slug": "rings",
+        "description": "خواتم فاخرة من الذهب والفضة والزمرد مصممة بدقة عالية.",
+        "image": "categories/rings.png"
+    }
+},
+{
+    "model": "store.category",
+    "pk": 1,
+    "fields": {
+        "name": "ساعات فاخرة",
+        "slug": "watches",
+        "description": "تشكيلة راقية من الساعات السويسرية والكلاسيكية المصنوعة من أفخر المواد.",
+        "image": "categories/watches.png"
+    }
+},
+{
+    "model": "store.category",
+    "pk": 2,
+    "fields": {
+        "name": "قلائد وسلاسل",
+        "slug": "necklaces",
+        "description": "قلائد وسلاسل فريدة مرصعة بالأحجار الكريمة لتزيين حضورك.",
+        "image": "categories/necklaces.png"
+    }
+},
+{
+    "model": "store.category",
+    "pk": 4,
+    "fields": {
+        "name": "نظارات شمسية",
+        "slug": "sunglasses",
+        "description": "نظارات شمسية عصرية توفر الحماية والأناقة الفائقة في آن واحد.",
+        "image": "categories/sunglasses.png"
+    }
+},
+{
+    "model": "store.product",
+    "pk": 3,
+    "fields": {
+        "category": 3,
+        "name": "خاتم الزمرد الفيكتوري الفضي",
+        "slug": "victorian-silver-emerald-ring",
+        "description": "خاتم من الفضة الإسترلينية 925 المصقولة بعناية فائقة، يتوسطه حجر زمرد طبيعي بيضاوي بلونه الأخضر الغني والملكي. تصميم مستوحى من العصر الفيكتوري الكلاسيكي يمنح يديك لمسة ملوكية مميزة.",
+        "price": "680.00",
+        "discount_price": null,
+        "image": "products/ring.png",
+        "stock": 9,
+        "is_active": true,
+        "created_at": "2026-07-14T00:13:26.670Z"
+    }
+},
+{
+    "model": "store.product",
+    "pk": 2,
+    "fields": {
+        "category": 2,
+        "name": "عقد البريق الأبدي الماسي",
+        "slug": "eternal-sparkle-necklace",
+        "description": "عقد نسائي مذهل مصاغ من الذهب الأبيض عيار 21 قيراط ومرصع بقطع الماس الصغيرة اللامعة التي تضفي بريقاً ساحراً لرقبتك. الخيار الأمثل للمناسبات والاحتفالات الخاصة والراقية.",
+        "price": "2400.00",
+        "discount_price": null,
+        "image": "products/necklace.png",
+        "stock": 3,
+        "is_active": true,
+        "created_at": "2026-07-14T00:13:26.658Z"
+    }
+},
+{
+    "model": "store.product",
+    "pk": 1,
+    "fields": {
+        "category": 1,
+        "name": "ساعة أوريليان الذهبية الكلاسيكية",
+        "slug": "aurelian-gold-watch",
+        "description": "ساعة رجالية كلاسيكية من الذهب الخالص عيار 18 قيراطاً، مزودة بآلية حركة أوتوماتيكية سويسرية دقيقة ومقاومة للماء حتى عمق 50 متراً. تصميم يجمع بين الفخامة والعملية لتلائم الحضور الرسمي واليومي.",
+        "price": "1250.00",
+        "discount_price": null,
+        "image": "products/watch.png",
+        "stock": 5,
+        "is_active": true,
+        "created_at": "2026-07-14T00:13:26.643Z"
+    }
+},
+{
+    "model": "store.governorate",
+    "pk": 1,
+    "fields": {
+        "name": "القاهرة",
+        "shipping_cost": "35.00"
+    }
+},
+{
+    "model": "store.governorate",
+    "pk": 2,
+    "fields": {
+        "name": "الجيزة",
+        "shipping_cost": "35.00"
+    }
+},
+{
+    "model": "store.governorate",
+    "pk": 3,
+    "fields": {
+        "name": "الإسكندرية",
+        "shipping_cost": "50.00"
+    }
+},
+{
+    "model": "store.governorate",
+    "pk": 4,
+    "fields": {
+        "name": "الصعيد والدلتا",
+        "shipping_cost": "65.00"
+    }
+},
+{
+    "model": "store.storesetting",
+    "pk": 3,
+    "fields": {
+        "free_shipping_threshold": "400.00"
+    }
+},
+{
+    "model": "store.coupon",
+    "pk": 1,
+    "fields": {
+        "code": "WELCOME10",
+        "discount": 10,
+        "active": true
+    }
+},
+{
+    "model": "store.coupon",
+    "pk": 2,
+    "fields": {
+        "code": "SAVE20",
+        "discount": 20,
+        "active": true
+    }
+}
+]

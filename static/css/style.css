@@ -1,27 +1,27 @@
 /* Apprecity - Design System & Custom CSS */
 :root {
-    --bg-dark: #0a0b0d;
-    --bg-surface: #12141c;
-    --bg-surface-hover: #1b1e2a;
-    --primary: #d4af37; /* Metallic Gold */
-    --primary-light: #f3e5ab; /* Soft Champagne */
-    --primary-dark: #aa841c;
-    --text-main: #f3f4f6;
-    --text-muted: #9ca3af;
-    --text-dark: #111827;
-    --border-color: rgba(212, 175, 55, 0.15);
-    --border-hover: rgba(212, 175, 55, 0.4);
+    --bg-dark: #faf9f6; /* Soft Royal Off-White */
+    --bg-surface: #ffffff; /* Crisp White Surface */
+    --bg-surface-hover: #f7f4ec; /* Light warm off-white */
+    --primary: #b89028; /* Deeper metallic gold for high contrast on light bg */
+    --primary-light: #ebd6a8; /* Soft champagne gold */
+    --primary-dark: #8a6710; /* Rich gold */
+    --text-main: #2b2c30; /* Dark Charcoal for great readability */
+    --text-muted: #72757f; /* Slate Gray for secondary text */
+    --text-dark: #111827; /* Pure dark */
+    --border-color: rgba(184, 144, 40, 0.25); /* Subtle gold border */
+    --border-hover: rgba(184, 144, 40, 0.55);
     --font-heading: 'Playfair Display', 'Tajawal', serif;
     --font-body: 'Outfit', 'Tajawal', sans-serif;
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.2);
-    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 2px 8px rgba(184, 144, 40, 0.05);
+    --shadow-md: 0 6px 16px rgba(184, 144, 40, 0.08);
+    --shadow-lg: 0 12px 30px rgba(184, 144, 40, 0.12);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --radius-sm: 4px;
     --radius-md: 12px;
     --radius-lg: 24px;
-    --glass-bg: rgba(18, 20, 28, 0.7);
-    --glass-border: rgba(212, 175, 55, 0.1);
+    --glass-bg: rgba(255, 255, 255, 0.88);
+    --glass-border: rgba(184, 144, 40, 0.15);
 }
 
 /* Reset and Globals */
@@ -273,7 +273,7 @@ img {
     min-height: 75vh;
     display: flex;
     align-items: center;
-    background: linear-gradient(135deg, rgba(10, 11, 13, 0.95) 0%, rgba(27, 30, 42, 0.8) 100%), 
+    background: linear-gradient(135deg, rgba(250, 249, 246, 0.95) 0%, rgba(247, 244, 236, 0.85) 100%), 
                 url('../images/hero-bg.jpg') no-repeat center center/cover;
     overflow: hidden;
 }
@@ -725,7 +725,7 @@ img {
 
 .search-form-sidebar input {
     width: 100%;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 0.75rem;
@@ -741,7 +741,7 @@ img {
 }
 
 .price-inputs input {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 0.5rem;
@@ -803,6 +803,11 @@ img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.detail-img-box:hover img {
+    transform: scale(1.08);
 }
 
 .detail-info {
@@ -1099,7 +1104,7 @@ img {
 
 /* Footer styling */
 .footer {
-    background: #060708;
+    background: #ffffff;
     border-top: 1px solid var(--border-color);
     padding: 5rem 2rem 2rem;
     margin-top: 6rem;
@@ -1158,7 +1163,7 @@ img {
     justify-content: center;
     width: 36px;
     height: 36px;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(184, 144, 40, 0.05);
     border: 1px solid var(--border-color);
     border-radius: 50%;
     color: var(--text-muted);
@@ -1195,7 +1200,7 @@ img {
     max-width: 1200px;
     margin: 0 auto;
     padding-top: 2rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(184, 144, 40, 0.15);
     text-align: center;
     color: var(--text-muted);
     font-size: 0.9rem;
