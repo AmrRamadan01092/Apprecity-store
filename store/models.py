@@ -26,7 +26,9 @@ class StoreSetting(models.Model):
 
     @classmethod
     def get_settings(cls):
-        obj, _ = cls.objects.get_or_create(id=1)
+        obj = cls.objects.first()
+        if not obj:
+            obj = cls.objects.create(free_shipping_threshold=500.00)
         return obj
 
 

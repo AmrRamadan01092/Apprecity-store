@@ -28,7 +28,7 @@ class StoreTests(TestCase):
     def test_home_page_status_code(self):
         response = self.client.get(reverse('store:home'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Apprecity')
+        self.assertContains(response, 'APRICITY')
 
     def test_shop_page_status_code(self):
         response = self.client.get(reverse('store:shop'))
